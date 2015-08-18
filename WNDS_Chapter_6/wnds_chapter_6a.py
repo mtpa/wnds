@@ -26,7 +26,7 @@ print(nx.degree(star))
 
 # plot the star network and degree distribution 
 fig = plt.figure()
-nx.draw(star, node_size = 2000, node_color = 'yellow')
+nx.draw_networkx(star, node_size = 2000, node_color = 'yellow')
 plt.show()
 
 fig = plt.figure()
@@ -43,7 +43,7 @@ star_mat = nx.adjacency_matrix(star,\
 print(star_mat)  # undirected networks are symmetric
 
 # determine the total number of links for the star network (n-1)
-print(np.sum(star_mat)/2)
+print(star_mat.sum()/2)
 
 # ---------------------------
 # circle (undirected network)
@@ -59,7 +59,7 @@ print(nx.degree(circle))
     
 # plot the circle network and degree distribution 
 fig = plt.figure()
-nx.draw(circle, node_size = 2000, node_color = 'yellow')
+nx.draw_networkx(circle, node_size = 2000, node_color = 'yellow')
 plt.show()
 
 fig = plt.figure()
@@ -76,7 +76,7 @@ circle_mat = nx.adjacency_matrix(circle,\
 print(circle_mat)  # undirected networks are symmetric
 
 # determine the total number of links for the circle network 
-print(np.sum(circle_mat)/2)
+print(circle_mat.sum()/2)
 
 # -------------------------
 # line (undirected network)
@@ -92,7 +92,7 @@ print(nx.degree(line))
 
 # plot the line network and degree distribution 
 fig = plt.figure()
-nx.draw(line, node_size = 2000, node_color = 'yellow')
+nx.draw_networkx(line, node_size = 2000, node_color = 'yellow')
 plt.show()
 
 fig = plt.figure()
@@ -109,7 +109,7 @@ line_mat = nx.adjacency_matrix(line,\
 print(line_mat)  # undirected networks are symmetric
 
 # determine the total number of links for the line network (n-1)
-print(np.sum(line_mat)/2)
+print(line_mat.sum()/2)
 
 # ---------------------------
 # clique (undirected network)
@@ -128,7 +128,8 @@ print(nx.degree(a_clique))
 
 # plot the clique and degree distribution 
 fig = plt.figure()
-nx.draw_circular(a_clique, node_size = 2000, node_color = 'yellow')
+nx.draw_networkx(a_clique, node_size = 2000, node_color = 'yellow',\
+    pos = nx.circular_layout(a_clique))
 plt.show()
 
 fig = plt.figure()
@@ -145,7 +146,7 @@ a_clique_mat = nx.adjacency_matrix(a_clique,\
 print(a_clique_mat)  # undirected networks are symmetric
 
 # determine the total number of links for the clique n(n-1)/2
-print(np.sum(a_clique_mat)/2)
+print(a_clique_mat.sum()/2)
 
 # -------------------------------
 # tree (directed network/digraph)
@@ -167,7 +168,7 @@ print(tree_mat)  # directed networks are not symmetric
 
 # determine the total number of links for the tree 
 # upper triangle only has values
-print(np.sum(tree_mat))
+print(tree_mat.sum())
 
 # plot the degree distribution 
 fig = plt.figure()
@@ -180,28 +181,39 @@ plt.show()
 # examine alternative layouts for plotting the tree 
 # plot the network/graph with default layout 
 fig = plt.figure()
-nx.draw(tree, node_size = 2000, node_color = 'yellow')
+nx.draw_networkx(tree, node_size = 2000, node_color = 'yellow')
 plt.show()
 
 # spring layout
 fig = plt.figure()
-nx.draw_spring(tree, node_size = 2000, node_color = 'yellow')
+nx.draw_networkx(tree, node_size = 2000, node_color = 'yellow',\
+    pos = nx.spring_layout(tree))
 plt.show()
 
 # circlular layout
 fig = plt.figure()
-nx.draw_circular(tree, node_size = 2000, node_color = 'yellow')
+nx.draw_networkx(tree, node_size = 2000, node_color = 'yellow',\
+    pos = nx.circular_layout(tree))
 plt.show()
 
-# concentric circles layout
+# shell/concentric circles layout
 fig = plt.figure()
-nx.draw_shell(tree, node_size = 2000, node_color = 'yellow')
+nx.draw_networkx(tree, node_size = 2000, node_color = 'yellow',\
+    pos = nx.shell_layout(tree))
 plt.show()
 
-# note. plotting as tree may require pygraphviz
+# spectral layout
+fig = plt.figure()
+nx.draw_networkx(tree, node_size = 2000, node_color = 'yellow',\
+    pos = nx.spectral_layout(tree))
+plt.show()
+
+# Gephi provides interactive network plots 
+# dump the graph object in GraphML format for input to Gephi
+nx.write_graphml(tree,'tree_to_gephi.graphml')
 
 # Suggestions for the student: Define alternative network structures.    
 # Use matplotlib to create their plots. Create the corresponding 
 # adjacency matrices and compute network descriptive statistics,
 # beginning with degree centrality. Plot the degree distribution
-# for each network.  Read about pygraphviz and try to plot a tree.
+# for each network.  Read about Gephi and try interactive plots.

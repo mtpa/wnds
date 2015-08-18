@@ -13,6 +13,8 @@ library(intergraph)  # for exchanges between igraph and network
 # For R network algorithms we need to ensure that
 # these the from- and to-node identifiers are 
 # treated as character strings, not integers.
+# We will eliminate these two records and any others
+# with zero indices so that names and indices allign.
 
 # ----------------------------------------------------------
 # Read in list of links... (from-node, to-node) pairs
@@ -22,13 +24,13 @@ cat("\n\nNumber of Links on Input: ", nrow(all_enron_links))
 # check the structure of the input data data frame
 print(str(all_enron_links))
 
-# convert the V1 and V2 to character strings
-all_enron_links$V1 <- as.character(all_enron_links$V1)
-all_enron_links$V2 <- as.character(all_enron_links$V2)
+# consider non-zero nodes only
+non_zero_enron_links <- subset(all_enron_links, subset = (V1 != 0))
+non_zero_enron_links <- subset(non_zero_enron_links, subset = (V2 != 0))
 
 # ensure that no e-mail links are from an executive to himself/herself
 # i.e. eliminate any nodes that are self-referring 
-enron_links <- subset(all_enron_links, subset = (V1 != V2))
+enron_links <- subset(non_zero_enron_links, subset = (V1 != V2))
 cat("\n\nNumber of Valid Links: ", nrow(enron_links))
 
 # create network object from the links
@@ -40,19 +42,17 @@ enron_net <- network(as.matrix(enron_links),
     matrix.type = "edgelist", directed = TRUE, multiple = TRUE)
 # create graph object with intergraph function asIgraph()
 enron_graph <- asIgraph(enron_net)
-# name the nodes noting that the first identifer on input was "0"
+
+# set up node reference table/data frame for later subgraph selection
 node_index <- as.numeric(V(enron_graph))
-V(enron_graph)$name <- node_name <- as.character(V(enron_graph) - 1)
-# node name lookup table
-node_reference_table <- data.frame(node_index, node_name, stringsAsFactors = FALSE)
-print(str(node_reference_table))
-print(head(node_reference_table))
+V(enron_graph)$name <- node_name <- as.character(V(enron_graph))
+node_name <- as.character(node_index)
+node_reference_table <- data.frame(node_index, node_name)
 
 # consider the subgraph of all people that node "1"
 # communicates with by e-mail (mail in or out)
-# node "1" corresponds to node index 2 in R
 ego_1_mail <- induced.subgraph(enron_graph, 
-    neighborhood(enron_graph, order = 1, nodes = 2)[[1]])
+    neighborhood(enron_graph, order = 1, nodes = 1)[[1]])
 # examine alternative layouts for plotting the ego_1_mail 
 pdf(file = "fig_ego_1_mail_network_four_ways.pdf", width = 5.5, height = 5.5)
 par(mfrow = c(1,1))  # four plots on one page
@@ -89,7 +89,6 @@ dev.off()
 # and add this measure (degree centrality) to the node reference table
 node_reference_table$node_degree <- degree(enron_graph)
 print(str(node_reference_table))
-print(head(node_reference_table))
 
 # sort the node reference table by degree and identify the indices
 # of the most active nodes (those with the most links)
@@ -105,15 +104,7 @@ K <- 50
 
 # identify a subset of K Enron executives based on e-mail-activity 
 top_node_indices <- sorted_node_reference_table$node_index[1:K]
-top_node_names <- sorted_node_reference_table$node_name[1:K]
 print(top_node_indices)
-print(top_node_names)
-
-# define a top nodes reference table as subset of complete reference table
-top_node_reference_table <- subset(node_reference_table, 
-    subset = (node_name %in% top_node_names))
-print(str(top_node_reference_table))
-print(head(top_node_reference_table))
 
 # construct the subgraph of the top K executives
 top_enron_graph <- induced.subgraph(enron_graph, top_node_indices)
@@ -188,24 +179,13 @@ dev.off()
 set.seed(9999)  # for reproducible results
 plot(top_enron_graph, vertex.size = 15, vertex.color = "white", 
     vertex.label.cex = 0.9, edge.arrow.size = 0.25,
-    layout = layout.reingold.tilford)  # node name 314?  
-    
-# compute centrality idices for the top executive nodes
-# begin by expressing the adjacency matrix in standard matrix form
-top_enron_graph_mat <- as.matrix(get.adjacency(top_enron_graph))
-top_node_reference_table$betweenness <- 
-    betweenness(top_enron_graph)  # betweenness centrality
-top_node_reference_table$evcent <- 
-    evcent(top_enron_graph)$vector  # eigenvalue centrality
-print(str(top_node_reference_table))
-print(top_node_reference_table)  # data for top executive nodes
+    layout = layout.reingold.tilford)  # node name 76?  
 
-# Suggestions for the student:  Experiment with techniques for identifying
+# Suggestions for the student. 
+# Experiment with other modeling technqiues for identifying
 # core executive groupings and sources of power in the organization. 
-# Could it be that node 314, a node not in the core group , 
+# Could it be that node name 76, a node not in the clique/core, 
 # is the true source of power in the organization?
-# What do indices of centrality suggest about possible sources
-# of power, influence, or importance in the Enron network?
 # Try other network visualizations for the Enron e-mail network.
 # Note that nowhere in our analysis so far have we looked at the 
 # number of e-mails sent from one player/node to another. 
@@ -214,7 +194,7 @@ print(top_node_reference_table)  # data for top executive nodes
 # Perhaps that is why everything looks like spaghetti or a ball of string.
 # There is much that can be done with the Enron e-mail corpus.
 # We could work with the original Enron e-mail case data, assigning
-# executive names (not just numbers) to the nodes. We could
+# executive names (not just numbers) to the nodes.  We could
 # explore methods of text analytics using the e-mail message text.
 
 
